@@ -13,17 +13,17 @@ object day01 extends App {
 
   override def run(args: List[String]): URIO[Console with Blocking, ExitCode] = {
 
-    val filePath = file.Path("/home/fred/hdv/dev/code/scala/aoc2021/day01/src/main/resources/input.txt")
+    val filePath = file.Path("input.txt")
 
     def open(filename: String): ZStream[Blocking, IOException, Byte] = {
-      val file = new File(filename)
+      val file = new File(getClass.getClassLoader.getResource(filename).getPath)
       val fis = new FileInputStream(file)
 
       ZStream.fromInputStream(fis)
     }
 
     val stream: ZStream[Blocking, IOException, Byte] =
-      open("/home/fred/hdv/dev/code/scala/aoc2021/day01/src/main/resources/input.txt")
+      open(filePath.toString())
 
     val program: ZIO[Console with Blocking, IOException, Int] =
       for {
@@ -31,7 +31,6 @@ object day01 extends App {
           .aggregate(ZTransducer.utf8Decode)
           .aggregate(ZTransducer.splitLines)
           .zipWithPrevious
-          .tap(r => putStrLn(r.toString))
           .map {
             case (None, _) => 0
             case (Some(t1), t2) =>
@@ -51,7 +50,7 @@ object day01 extends App {
 
 
     program
-      .tap(r => putStrLn(s"${r.toString} ++"))
+      .tap(r => putStrLn(s"star 1: ${r.toString}"))
       .catchAll(err => ZIO.debug(err))
       .exitCode
 
